@@ -1,4 +1,6 @@
-﻿namespace CuoiKyDocNet.Models
+﻿using System.Collections.Generic;
+
+namespace CuoiKyDocNet.Models
 {
     public class Podcast
     {
@@ -7,6 +9,14 @@
         public string Description { get; set; }
         public string ImageUrl { get; set; }
         public string Category { get; set; }
-        public List<Episode> Episodes { get; set; }
+
+        public ICollection<UserFavoritePodcast> UserFavorites { get; set; }
+        public ICollection<Episode> Episodes { get; set; }
+
+        public Podcast()
+        {
+            UserFavorites = new List<UserFavoritePodcast>();
+            Episodes = new List<Episode>();
+        }
     }
 }

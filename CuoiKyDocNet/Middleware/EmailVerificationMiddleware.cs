@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Logging;
 using CuoiKyDocNet.Models;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
-namespace CuoiKyDocNet.Middleware
+namespace CuoiKyDocNet.Data
 {
     public class EmailVerificationMiddleware
     {
@@ -21,39 +21,24 @@ namespace CuoiKyDocNet.Middleware
         {
             if (context.User.Identity.IsAuthenticated)
             {
-                _logger.LogInformation("User is authenticated, checking email verification.");
                 var user = await userManager.GetUserAsync(context.User);
-                if (user != null)
+                if (user != null && !user.EmailConfirmed)
                 {
-                    _logger.LogInformation("User found, Email: {Email}, EmailConfirmed: {EmailConfirmed}", user.Email, user.EmailConfirmed);
-                    if (!user.EmailConfirmed)
+                    var path = context.Request.Path.Value.ToLower();
+                    if (!path.StartsWith("/account/verifyemail") &&
+                        !path.StartsWith("/account/logout") &&
+                        !path.StartsWith("/account/signup"))
                     {
-                        if (!context.Request.Path.StartsWithSegments("/Account/VerifyCode") &&
-                            !context.Request.Path.StartsWithSegments("/Account/Logout") &&
-                            !context.Request.Path.StartsWithSegments("/Account/SignUp"))
-                        {
-                            _logger.LogInformation("Redirecting to VerifyCode for user: {Email}", user.Email);
-                            context.Response.Redirect("/Account/VerifyCode");
-                            return;
-                        }
+                        _logger.LogInformation("Redirecting user {Email} to email verification.", user.Email);
+                        context.Response.Redirect("/Account/VerifyEmail?email=" + user.Email);
+                        return;
                     }
-                    else
-                    {
-                        _logger.LogInformation("User {Email} is verified, proceeding.", user.Email);
-                    }
-                }
-                else
-                {
-                    _logger.LogWarning("User not found, redirecting to Login.");
-                    context.Response.Redirect("/Account/Login");
-                    return;
                 }
             }
             await _next(context);
         }
     }
 
-    // Extension method để dễ dàng đăng ký middleware trong Program.cs
     public static class EmailVerificationMiddlewareExtensions
     {
         public static IApplicationBuilder UseEmailVerification(this IApplicationBuilder builder)

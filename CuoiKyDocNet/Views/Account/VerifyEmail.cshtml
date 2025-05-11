@@ -1,0 +1,33 @@
+﻿@model CuoiKyDocNet.Models.VerifyEmailViewModel
+@{
+    ViewData["Title"] = "Verify Your Email";
+}
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4 text-white">Verify Your Email</h2>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="profile-info bg-dark p-4 rounded-0 border-0 text-white">
+                <p>We have sent a verification code to <strong>@Model.Email</strong>. Please enter the code below to verify your email address.</p>
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+                }
+                <form asp-action="VerifyEmail" method="post">
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                    <input type="hidden" asp-for="Email" />
+                    <div class="form-group mb-3">
+                        <label asp-for="Code" class="text-white"></label>
+                        <input asp-for="Code" class="form-control" />
+                        <span asp-validation-for="Code" class="text-danger"></span>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Verify</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

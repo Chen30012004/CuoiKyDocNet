@@ -19,7 +19,6 @@
         <div class="col-md-9 col-sm-12 col-lg-9">
             @if (User.IsInRole("Admin"))
             {
-                <!-- Form chỉnh sửa podcast (chỉ dành cho Admin) -->
                 <form asp-action="EditPodcast" method="post" class="mb-3">
                     <input type="hidden" name="id" value="@Model.Id" />
                     <div class="mb-2">
@@ -36,7 +35,7 @@
                     </div>
                     <div class="mb-2">
                         <label class="form-label text-white">Category</label>
-                        <input type="text" name="category" value="@Model.Category" class="form-control" />
+                        <input type="text" name="category" value="@Model.Category" class="form-control" required />
                     </div>
                     <button type="submit" class="btn btn-primary mt-2">
                         <i class="fas fa-save me-2"></i>Save Changes
@@ -60,23 +59,26 @@
     <a asp-controller="Episodes" asp-action="Create" asp-route-podcastId="@Model.Id" class="btn btn-success mb-3">Add Episode</a>
 }
 <div class="episode-list">
-    @foreach (var episode in Model.Episodes.OrderByDescending(e => e.ReleaseDate))
+    @if (Model.Episodes != null && Model.Episodes.Any())
     {
-        <div class="episode-item d-flex align-items-center mb-3 p-3 bg-dark rounded shadow">
-            <img src="@Model.ImageUrl" alt="@episode.Title" class="episode-image me-3 rounded" style="width: 50px; height: 50px; object-fit: cover;" />
-            <div class="flex-grow-1">
-                <h5 class="text-white">@episode.Title</h5>
-                <p class="text-muted">@(string.IsNullOrEmpty(episode.Description) ? "No description" : episode.Description.Substring(0, Math.Min(episode.Description.Length, 150)) + "...")</p>
-                <small class="text-muted">@episode.ReleaseDate.ToString("MMM dd, yyyy") • @episode.Duration mins</small>
+        @foreach (var episode in Model.Episodes.OrderByDescending(e => e.ReleaseDate))
+        {
+            <div class="episode-item d-flex align-items-center mb-3 p-3 bg-dark rounded shadow">
+                <img src="@Model.ImageUrl" alt="@episode.Title" class="episode-image me-3 rounded" style="width: 50px; height: 50px; object-fit: cover;" />
+                <div class="flex-grow-1">
+                    <h5 class="text-white">@episode.Title</h5>
+                    <p class="text-muted">@(string.IsNullOrEmpty(episode.Description) ? "No description" : episode.Description.Substring(0, Math.Min(episode.Description.Length, 150)) + "...")</p>
+                    <small class="text-muted">@episode.ReleaseDate.ToString("MMM dd, yyyy") • @episode.Duration mins</small>
+                </div>
+                <div>
+                    <button class="btn btn-success btn-sm play-episode" data-audio="@episode.AudioUrl" data-title="@episode.Title">
+                        <i class="fas fa-play"></i> Play
+                    </button>
+                </div>
             </div>
-            <div>
-                <button class="btn btn-success btn-sm play-episode" data-audio="@episode.AudioUrl" data-title="@episode.Title">
-                    <i class="fas fa-play"></i> Play
-                </button>
-            </div>
-        </div>
+        }
     }
-    @if (!Model.Episodes.Any())
+    else
     {
         <p class="text-white">No episodes available.</p>
     }
@@ -113,7 +115,6 @@
     </form>
 }
 
-<!-- Nút quay lại -->
 <a asp-action="Index" class="btn btn-secondary mt-3">
     <i class="fas fa-arrow-left me-2"></i>Back to Podcasts
 </a>
@@ -176,10 +177,40 @@
                 return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
             }
 
-            // Chức năng Play All (chưa hoàn thiện, cần danh sách URL episode)
             window.playAllEpisodes = function () {
-                alert('Play All functionality is not fully implemented yet. Please play individual episodes.');
-                // TODO: Thêm logic để phát tất cả episode theo thứ tự ReleaseDate
+                var episodes = @Html.Raw(Json.Serialize(Model.Episodes.OrderByDescending(e => e.ReleaseDate).Select(e => new { e.AudioUrl, e.Title })));
+                if (episodes.length === 0) {
+                    alert('No episodes available to play.');
+                    return;
+                }
+
+                var currentIndex = 0;
+                var audioPlayer = $('#audio-player')[0];
+                var $playingTitle = $('#playing-title');
+                var $playingImage = $('#playing-image');
+                var $audioControl = $('.audio-control i');
+
+                function playEpisode(index) {
+                    if (index >= episodes.length) {
+                        $playingTitle.text('Now Playing: Episode Title');
+                        $playingImage.hide();
+                        $audioControl.removeClass('fa-pause').addClass('fa-play');
+                        return;
+                    }
+
+                    var episode = episodes[index];
+                    audioPlayer.src = episode.audioUrl;
+                    audioPlayer.play();
+                    $playingTitle.text('Now Playing: ' + episode.title);
+                    $playingImage.attr('src', '@Model.ImageUrl').show();
+                    $audioControl.removeClass('fa-play').addClass('fa-pause');
+
+                    audioPlayer.onended = function () {
+                        playEpisode(index + 1);
+                    };
+                }
+
+                playEpisode(currentIndex);
             };
         });
     </script>

@@ -7,7 +7,7 @@
         public string Description { get; set; }
         public string AudioUrl { get; set; }
         public DateTime ReleaseDate { get; set; }
-        public int Duration { get; set; } // Thời lượng (phút)
+        public int Duration { get; set; }
         public int PodcastId { get; set; }
         public Podcast Podcast { get; set; }
     }

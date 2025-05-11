@@ -1,25 +1,53 @@
-﻿@model dynamic
+﻿@model CuoiKyDocNet.Models.SignUpViewModel
+
 @{
     ViewData["Title"] = "Sign Up";
 }
 
-<h2>Sign Up</h2>
+<div class="container mt-5">
+    <h2 class="text-center mb-4 text-white">Sign Up</h2>
 
-<form asp-action="SignUp" method="post" class="profile-info" style="margin-bottom: 20px; margin-top: 20px;">
-    <div class="text-danger" asp-validation-summary="All"></div>
-    <div class="form-group">
-        <label for="fullName">Full Name</label>
-        <input type="text" name="fullName" class="form-control" required />
-    </div>
-    <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" name="email" class="form-control" required />
-    </div>
-    <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" name="password" class="form-control" required />
-    </div>
-    <button type="submit" class="btn btn-success">Sign Up</button>
-</form>
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success text-center">
+            @TempData["SuccessMessage"]
+        </div>
+    }
 
-<p>Already have an account? <a asp-action="Login">Login</a></p>
+    <div class="profile-info bg-dark p-4 rounded-0 border-0 text-white">
+        <form asp-action="SignUp" method="post">
+            <div class="text-danger" asp-validation-summary="All"></div>
+            <div class="form-group mb-3">
+                <label asp-for="FullName" class="form-label text-white"></label>
+                <input asp-for="FullName" class="form-control" required />
+                <span asp-validation-for="FullName" class="text-danger"></span>
+            </div>
+            <div class="form-group mb-3">
+                <label asp-for="Email" class="form-label text-white"></label>
+                <input asp-for="Email" class="form-control" required />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <div class="form-group mb-3">
+                <label asp-for="Password" class="form-label text-white"></label>
+                <input asp-for="Password" class="form-control" required />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+            <div class="form-group mb-3">
+                <label asp-for="ConfirmPassword" class="form-label text-white"></label>
+                <input asp-for="ConfirmPassword" class="form-control" required />
+                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+            </div>
+            <div class="form-group mb-3">
+                <label class="form-check-label text-white">
+                    <input asp-for="ReceiveEmailNotifications" class="form-check-input" /> Receive Email Notifications
+                </label>
+            </div>
+            <button type="submit" class="btn btn-success">Sign Up</button>
+            <a asp-action="Login" class="btn btn-secondary ms-2">Back to Login</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

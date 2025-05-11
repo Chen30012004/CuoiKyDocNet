@@ -1,144 +1,87 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using CuoiKyDocNet.Data;
 using CuoiKyDocNet.Models;
+using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace CuoiKyDocNet.Controllers
 {
-    [Authorize(Roles = "Admin")]
     public class PodcastsController : Controller
     {
         private readonly PodcastContext _context;
+        private readonly ILogger<PodcastsController> _logger;
 
-        public PodcastsController(PodcastContext context)
+        public PodcastsController(PodcastContext context, ILogger<PodcastsController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
-        public async Task<IActionResult> ManagePodcasts()
-        {
-            var podcasts = await _context.Podcasts.ToListAsync();
-            return View(podcasts);
-        }
-
-        public async Task<IActionResult> Index(string category)
+        [AllowAnonymous]
+        public async Task<IActionResult> Index(string category, int page = 1, int pageSize = 9)
         {
             IQueryable<Podcast> podcasts = _context.Podcasts;
-
             if (!string.IsNullOrEmpty(category))
             {
                 podcasts = podcasts.Where(p => p.Category == category);
             }
 
+            var totalItems = await podcasts.CountAsync();
+            var podcastList = await podcasts
+                .OrderBy(p => p.Title)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewBag.CurrentCategory = category;
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            _logger.LogInformation("Displayed podcasts with category {Category}, page {Page}.", category ?? "All", page);
+            return View(podcastList);
+        }
+
+        [AllowAnonymous]
+        public async Task<IActionResult> Search(string query)
+        {
+            IQueryable<Podcast> podcasts = _context.Podcasts;
+            if (!string.IsNullOrEmpty(query))
+            {
+                query = query.ToLower();
+                podcasts = podcasts.Where(p => p.Title.ToLower().Contains(query) ||
+                                              p.Description.ToLower().Contains(query) ||
+                                              p.Category.ToLower().Contains(query));
+            }
             var podcastList = await podcasts.ToListAsync();
-            return View("ManagePodcasts", podcastList); // Sử dụng cùng view ManagePodcasts
+            ViewBag.Query = query;
+
+            _logger.LogInformation("Search performed with query '{Query}'. Found {Count} results.", query, podcastList.Count);
+            return View("Index", podcastList);
         }
 
-        public IActionResult AddPodcast()
-        {
-            return View("EditPodcast", new Podcast());
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> EditPodcast(int? id)
-        {
-            if (id == null)
-            {
-                return View(new Podcast());
-            }
-
-            var podcast = await _context.Podcasts.FindAsync(id);
-            if (podcast == null)
-            {
-                return NotFound();
-            }
-            return View(podcast);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditPodcast(int id, string title, string description, string imageUrl, string category, string action)
-        {
-            var podcast = id == 0 ? new Podcast() : await _context.Podcasts.FindAsync(id);
-
-            if (podcast == null && id != 0)
-            {
-                return NotFound();
-            }
-
-            if (action == "Delete")
-            {
-                if (podcast != null)
-                {
-                    _context.Podcasts.Remove(podcast);
-                    await _context.SaveChangesAsync();
-                    TempData["SuccessMessage"] = "Podcast deleted successfully.";
-                    return RedirectToAction("ManagePodcasts");
-                }
-                TempData["ErrorMessage"] = "Podcast not found.";
-                return RedirectToAction("ManagePodcasts");
-            }
-
-            podcast.Title = title;
-            podcast.Description = description;
-            podcast.ImageUrl = imageUrl;
-            podcast.Category = category;
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    if (id == 0)
-                    {
-                        _context.Add(podcast);
-                        TempData["SuccessMessage"] = "Podcast added successfully.";
-                    }
-                    else
-                    {
-                        _context.Update(podcast);
-                        TempData["SuccessMessage"] = "Podcast updated successfully.";
-                    }
-                    await _context.SaveChangesAsync();
-                    return RedirectToAction("ManagePodcasts");
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!PodcastExists(podcast.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-            }
-
-            return View(podcast);
-        }
-
-        [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
             {
+                _logger.LogWarning("Podcast details requested with null ID.");
                 return NotFound();
             }
 
-            var podcast = await _context.Podcasts.FindAsync(id);
+            var podcast = await _context.Podcasts
+                .Include(p => p.Episodes)
+                .FirstOrDefaultAsync(m => m.Id == id);
             if (podcast == null)
             {
+                _logger.LogWarning("Podcast ID {Id} not found.", id);
                 return NotFound();
             }
 
+            _logger.LogInformation("Displayed details for podcast {Title}.", podcast.Title);
             return View(podcast);
-        }
-
-        private bool PodcastExists(int id)
-        {
-            return _context.Podcasts.Any(e => e.Id == id);
         }
     }
 }

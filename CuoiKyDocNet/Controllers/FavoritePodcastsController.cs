@@ -18,7 +18,6 @@ namespace CuoiKyDocNet.Controllers
             _context = context;
         }
 
-        // Hiển thị danh sách podcast yêu thích
         public async Task<IActionResult> Index()
         {
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -31,7 +30,6 @@ namespace CuoiKyDocNet.Controllers
             return View(favoritePodcasts);
         }
 
-        // Thêm podcast vào danh sách yêu thích
         [HttpPost]
         public async Task<IActionResult> AddToFavorites(int podcastId)
         {
@@ -58,7 +56,6 @@ namespace CuoiKyDocNet.Controllers
             return RedirectToAction("Index");
         }
 
-        // Xóa podcast khỏi danh sách yêu thích
         [HttpPost]
         public async Task<IActionResult> RemoveFromFavorites(int podcastId)
         {

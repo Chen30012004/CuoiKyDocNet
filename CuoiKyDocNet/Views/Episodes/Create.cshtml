@@ -1,0 +1,65 @@
+﻿@model CuoiKyDocNet.Models.Episode
+
+@{
+    ViewData["Title"] = "Add Episode";
+}
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4 text-white">
+        <i class="fas fa-plus me-2"></i>Add Episode for @ViewBag.PodcastTitle
+    </h2>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success" role="alert">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="profile-info bg-dark p-4 rounded-0 border-0 text-white">
+        <form asp-action="Create" method="post">
+            <input type="hidden" asp-for="PodcastId" />
+            <div class="mb-3">
+                <label asp-for="Title" class="form-label text-white"></label>
+                <input asp-for="Title" class="form-control" required />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Description" class="form-label text-white"></label>
+                <textarea asp-for="Description" class="form-control"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="AudioUrl" class="form-label text-white"></label>
+                <input asp-for="AudioUrl" class="form-control" required />
+                <span asp-validation-for="AudioUrl" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="ReleaseDate" class="form-label text-white"></label>
+                <input asp-for="ReleaseDate" type="date" class="form-control" required />
+                <span asp-validation-for="ReleaseDate" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Duration" class="form-label text-white"></label>
+                <input asp-for="Duration" type="number" class="form-control" min="1" required />
+                <span asp-validation-for="Duration" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Add Episode
+            </button>
+            <a asp-action="Details" asp-controller="Podcasts" asp-route-id="@Model.PodcastId" class="btn btn-secondary ms-2">
+                <i class="fas fa-arrow-left me-2"></i>Back to Podcast
+            </a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

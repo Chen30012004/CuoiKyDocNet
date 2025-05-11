@@ -1,0 +1,33 @@
+﻿@model CuoiKyDocNet.Models.ManageRolesViewModel
+@{
+    ViewData["Title"] = "Manage Roles";
+}
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4 text-white">Manage Roles for @Model.Email</h2>
+    <div class="profile-info bg-dark p-4 rounded-0 border-0 text-white">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+        }
+        <form asp-action="ManageRoles" method="post">
+            <input type="hidden" asp-for="UserId" />
+            <div class="mb-3">
+                @for (var i = 0; i < Model.Roles.Count; i++)
+                {
+                    <div class="form-check">
+                        <input type="hidden" asp-for="Roles[i].RoleName" />
+                        <input asp-for="Roles[i].IsAssigned" class="form-check-input" />
+                        <label class="form-check-label text-white">@Model.Roles[i].RoleName</label>
+                    </div>
+                }
+            </div>
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a asp-action="ManageUsers" class="btn btn-secondary ms-2">Back</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

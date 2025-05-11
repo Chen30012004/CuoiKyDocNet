@@ -1,31 +1,48 @@
-﻿@model dynamic
+﻿@model CuoiKyDocNet.Models.LoginViewModel
 @{
     ViewData["Title"] = "Login";
 }
 
-<h2>Login</h2>
-
-<form asp-action="Login" method="post" >
-    <div class="profile-info">
-        <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
-        <div class="text-danger" asp-validation-summary="All"></div>
-        <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" name="email" class="form-control" required />
+<div class="container mt-5">
+    <h2 class="text-center mb-4 text-white">Login</h2>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="profile-info bg-dark p-4 rounded-0 border-0 text-white">
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+                }
+                <form asp-action="Login" method="post">
+                    <input type="hidden" asp-for="ReturnUrl" />
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                    <div class="form-group mb-3">
+                        <label asp-for="Email" class="text-white"></label>
+                        <input asp-for="Email" class="form-control" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label asp-for="Password" class="text-white"></label>
+                        <input asp-for="Password" class="form-control" />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+                    <div class="form-group mb-3">
+                        <div class="form-check">
+                            <input asp-for="RememberMe" class="form-check-input" />
+                            <label asp-for="RememberMe" class="form-check-label text-white"></label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Login</button>
+                </form>
+                <div class="mt-3 text-center">
+                    <a asp-action="SignUp" class="text-white">Don't have an account? Sign up</a>
+                    <br />
+                    <a asp-action="ForgotPassword" class="text-white">Forgot your password?</a>
+                </div>
+            </div>
         </div>
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" name="password" class="form-control" required />
-        </div>
-        <div class="form-group">
-            <label>
-                <input type="checkbox" name="rememberMe" /> Remember Me
-            </label>
-        </div>
-        <a asp-action="ForgotPassword" class="text-warning">Forgot your password?</a>
     </div>
+</div>
 
-    <button type="submit" class="btn btn-success" style="margin-top:20px">Login</button>
-</form>
-
-<p>Don't have an account? <a asp-action="SignUp">Sign Up</a></p>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

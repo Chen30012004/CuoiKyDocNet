@@ -7,50 +7,75 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Serilog
-builder.Host.UseSerilog((context, configuration) =>
-{
-    configuration.ReadFrom.Configuration(context.Configuration);
-});
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .WriteTo.File("Logs/log-.txt", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7)
+    .CreateLogger();
 
-// Add services to the container.
+builder.Host.UseSerilog();
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<PodcastContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<PodcastContext>()
     .AddDefaultTokenProviders();
-
-builder.Services.AddScoped<RoleManager<IdentityRole>>();
-builder.Services.AddScoped<UserManager<ApplicationUser>>();
 builder.Services.AddScoped<EmailService>();
 
 var app = builder.Build();
 
-// Seed roles
 using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    string[] roleNames = { "Admin", "User" };
-    foreach (var roleName in roleNames)
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+    if (!await roleManager.RoleExistsAsync("Admin"))
     {
-        if (!await roleManager.RoleExistsAsync(roleName))
+        await roleManager.CreateAsync(new IdentityRole("Admin"));
+    }
+    if (!await roleManager.RoleExistsAsync("User"))
+    {
+        await roleManager.CreateAsync(new IdentityRole("User"));
+    }
+
+    string adminEmail = "admin@example.com";
+    string adminPassword = "Admin123!";
+    var adminUser = await userManager.FindByEmailAsync(adminEmail);
+    if (adminUser == null)
+    {
+        adminUser = new ApplicationUser
         {
-            await roleManager.CreateAsync(new IdentityRole(roleName));
+            UserName = adminEmail,
+            Email = adminEmail,
+            FullName = "Administrator",
+            EmailConfirmed = true,
+            ReceiveEmailNotifications = false,
+            VerificationCode = "000000" // Gán giá trị mặc định cho VerificationCode
+        };
+        var result = await userManager.CreateAsync(adminUser, adminPassword);
+        if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(adminUser, "Admin");
+            app.Logger.LogInformation("Default admin account created with email: {Email}", adminEmail);
+        }
+        else
+        {
+            foreach (var error in result.Errors)
+            {
+                app.Logger.LogError("Error creating admin account: {Error}", error.Description);
+            }
         }
     }
 }
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
+    app.UseDeveloperExceptionPage();
 }
 else
 {
-    app.UseDeveloperExceptionPage();
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
 }
 
 app.UseHttpsRedirection();

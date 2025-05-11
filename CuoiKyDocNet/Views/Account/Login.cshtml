@@ -13,7 +13,7 @@
                     <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
                 }
                 <form asp-action="Login" method="post">
-                    <input type="hidden" asp-for="ReturnUrl" />
+                    <input type="hidden" asp-for="ReturnUrl" value="@Model.ReturnUrl" />
                     <div asp-validation-summary="All" class="text-danger"></div>
                     <div class="form-group mb-3">
                         <label asp-for="Email" class="text-white"></label>

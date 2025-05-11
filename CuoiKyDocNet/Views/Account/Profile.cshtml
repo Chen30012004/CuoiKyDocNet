@@ -1,27 +1,25 @@
 ﻿@model CuoiKyDocNet.Models.ProfileViewModel
-
 @{
     ViewData["Title"] = "Profile";
 }
 
 <div class="container mt-5">
-    <h2 class="text-center mb-4 text-white">Profile</h2>
-
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success text-center">
-            @TempData["SuccessMessage"]
+    <h2 class="text-center mb-4 text-white">Your Profile</h2>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="profile-info bg-dark p-4 rounded-0 border-0 text-white">
+                <h4 class="text-white">Profile Information</h4>
+                <hr class="bg-white" />
+                <p><strong>Email:</strong> @Model.Email</p>
+                <p><strong>Full Name:</strong> @Model.FullName</p>
+                <p><strong>Receive Email Notifications:</strong> @(Model.ReceiveEmailNotifications ? "Yes" : "No")</p>
+                <div class="mt-3">
+                    <a asp-action="EditProfile" class="btn btn-primary">Edit Profile</a>
+                    <form asp-action="Logout" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-secondary">Logout</button>
+                    </form>
+                </div>
+            </div>
         </div>
-    }
-
-    <div class="profile-info bg-dark p-4 rounded-0 border-0 text-white">
-        <p><strong>Email:</strong> @Model.Email</p>
-        <p><strong>Username:</strong> @Model.UserName</p>
-        <p><strong>Role:</strong> @Model.Role</p>
-        <a asp-action="ChangePassword" asp-controller="Account" class="btn btn-warning mt-3">Change Password</a>
-        @if (User.IsInRole("Admin"))
-        {
-            <a asp-action="ManagePodcasts" asp-controller="Admin" class="btn btn-primary mt-3 ms-2">Manage Podcasts</a>
-        }
     </div>
 </div>

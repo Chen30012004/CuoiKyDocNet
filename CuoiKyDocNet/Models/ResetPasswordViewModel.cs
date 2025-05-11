@@ -17,6 +17,6 @@ namespace CuoiKyDocNet.Models
         [DataType(DataType.Password)]
         public string ConfirmPassword { get; set; }
 
-        public string Code { get; set; }
+        public string Token { get; set; }
     }
 }

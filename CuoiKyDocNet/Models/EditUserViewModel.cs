@@ -17,5 +17,9 @@ namespace CuoiKyDocNet.Models
 
         [Display(Name = "Receive Email Notifications")]
         public bool ReceiveEmailNotifications { get; set; }
+
+        [Required]
+        [DataType(DataType.Password)]
+        public string Password { get; set; }
     }
 }

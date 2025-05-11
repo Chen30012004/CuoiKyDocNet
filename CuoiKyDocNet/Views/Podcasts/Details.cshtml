@@ -1,17 +1,13 @@
 ﻿@model CuoiKyDocNet.Models.Podcast
-
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var isEditMode = ViewBag.IsEditMode as bool? ?? false;
 }
 
 <div class="podcast-header mb-5">
     <div class="row align-items-center">
         <div class="col-md-3 col-sm-12 col-lg-3">
-            @if (User.IsInRole("Admin") && !string.IsNullOrEmpty(Model.ImageUrl))
-            {
-                <img src="@Model.ImageUrl" alt="@Model.Title" class="img-fluid rounded shadow" style="max-width: 200px; height: auto;" />
-            }
-            else if (!string.IsNullOrEmpty(Model.ImageUrl))
+            @if (!string.IsNullOrEmpty(Model.ImageUrl))
             {
                 <img src="@Model.ImageUrl" alt="@Model.Title" class="img-fluid rounded shadow" style="max-width: 200px; height: auto;" />
             }
@@ -19,28 +15,44 @@
         <div class="col-md-9 col-sm-12 col-lg-9">
             @if (User.IsInRole("Admin"))
             {
-                <form asp-action="EditPodcast" method="post" class="mb-3">
-                    <input type="hidden" name="id" value="@Model.Id" />
-                    <div class="mb-2">
-                        <label class="form-label text-white">Title</label>
-                        <input type="text" name="title" value="@Model.Title" class="form-control" required />
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label text-white">Description</label>
-                        <textarea name="description" class="form-control" required>@Model.Description</textarea>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label text-white">Image URL</label>
-                        <input type="text" name="imageUrl" value="@Model.ImageUrl" class="form-control" />
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label text-white">Category</label>
-                        <input type="text" name="category" value="@Model.Category" class="form-control" required />
-                    </div>
-                    <button type="submit" class="btn btn-primary mt-2">
-                        <i class="fas fa-save me-2"></i>Save Changes
-                    </button>
-                </form>
+                if (isEditMode)
+                {
+                    <form asp-action="DetailsPodcast" asp-controller="Admin" method="post" class="mb-3">
+                        <input type="hidden" asp-for="Id" />
+                        <div asp-validation-summary="All" class="text-danger"></div>
+                        <div class="mb-2">
+                            <label asp-for="Title" class="form-label text-white"></label>
+                            <input asp-for="Title" class="form-control" required />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+                        <div class="mb-2">
+                            <label asp-for="Description" class="form-label text-white"></label>
+                            <textarea asp-for="Description" class="form-control" required></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                        <div class="mb-2">
+                            <label asp-for="ImageUrl" class="form-label text-white"></label>
+                            <input asp-for="ImageUrl" class="form-control" />
+                            <span asp-validation-for="ImageUrl" class="text-danger"></span>
+                        </div>
+                        <div class="mb-2">
+                            <label asp-for="Category" class="form-label text-white"></label>
+                            <input asp-for="Category" class="form-control" required />
+                            <span asp-validation-for="Category" class="text-danger"></span>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-2">
+                            <i class="fas fa-save me-2"></i>Save Changes
+                        </button>
+                        <a asp-action="DetailsPodcast" asp-controller="Admin" asp-route-id="@Model.Id" class="btn btn-secondary mt-2 ms-2">Cancel</a>
+                    </form>
+                }
+                else
+                {
+                    <h1 class="text-white">@Model.Title</h1>
+                    <p class="text-muted">@Model.Category</p>
+                    <p class="text-white">@Model.Description</p>
+                    <a asp-action="DetailsPodcast" asp-controller="Admin" asp-route-id="@Model.Id" asp-route-isEditMode="true" class="btn btn-primary mt-2">Edit Podcast</a>
+                }
             }
             else
             {
@@ -56,7 +68,7 @@
 <h3 class="mb-4 text-white">Episodes</h3>
 @if (User.IsInRole("Admin"))
 {
-    <a asp-controller="Episodes" asp-action="Create" asp-route-podcastId="@Model.Id" class="btn btn-success mb-3">Add Episode</a>
+    <a asp-controller="Admin" asp-action="AddEpisode" asp-route-podcastId="@Model.Id" class="btn btn-success mb-3">Add Episode</a>
 }
 <div class="episode-list">
     @if (Model.Episodes != null && Model.Episodes.Any())
@@ -82,136 +94,119 @@
     {
         <p class="text-white">No episodes available.</p>
     }
-</div>
+    }
 
-@if (User.IsInRole("Admin"))
-{
-    <h4 class="mt-5">Add New Episode (Inline)</h4>
-    <form asp-action="AddEpisode" method="post" class="mb-3">
-        <input type="hidden" name="podcastId" value="@Model.Id" />
-        <div class="mb-2">
-            <label class="form-label text-white">Episode Title</label>
-            <input type="text" name="title" class="form-control" required />
+    @if (User.IsInRole("Admin"))
+    {
+        <form asp-action="DeletePodcast" asp-controller="Admin" asp-route-id="@Model.Id" method="post" class="mt-3" onsubmit="return confirm('Are you sure you want to delete this podcast?');">
+            <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash me-2"></i>Delete Podcast
+            </button>
+        </form>
+    }
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success mt-3" role="alert">
+            @TempData["SuccessMessage"]
         </div>
-        <div class="mb-2">
-            <label class="form-label text-white">Description</label>
-            <textarea name="description" class="form-control"></textarea>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger mt-3" role="alert">
+            @TempData["ErrorMessage"]
         </div>
-        <div class="mb-2">
-            <label class="form-label text-white">Audio URL</label>
-            <input type="text" name="audioUrl" class="form-control" required />
-        </div>
-        <div class="mb-2">
-            <label class="form-label text-white">Release Date</label>
-            <input type="date" name="releaseDate" class="form-control" required />
-        </div>
-        <div class="mb-2">
-            <label class="form-label text-white">Duration (minutes)</label>
-            <input type="number" name="duration" class="form-control" min="1" required />
-        </div>
-        <button type="submit" class="btn btn-primary">
-            <i class="fas fa-plus me-2"></i>Add Episode
-        </button>
-    </form>
-}
+    }
 
-<a asp-action="Index" class="btn btn-secondary mt-3">
-    <i class="fas fa-arrow-left me-2"></i>Back to Podcasts
-</a>
-
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success mt-3" role="alert">
-        @TempData["SuccessMessage"]
-    </div>
-}
-@if (TempData["ErrorMessage"] != null)
-{
-    <div class="alert alert-danger mt-3" role="alert">
-        @TempData["ErrorMessage"]
-    </div>
-}
-
-@section Scripts {
-    <script>
-        $(document).ready(function () {
-            var audioPlayer = $('#audio-player')[0];
-            var $playingTitle = $('#playing-title');
-            var $playingImage = $('#playing-image');
-            var $currentTime = $('#current-time');
-            var $duration = $('#duration');
-            var $audioControl = $('.audio-control i');
-
-            $('.play-episode').click(function () {
-                var audioUrl = $(this).data('audio');
-                var episodeTitle = $(this).closest('.episode-item').find('h5').text();
-                var episodeImage = $(this).closest('.episode-item').find('img').attr('src');
-
-                audioPlayer.src = audioUrl;
-                audioPlayer.play();
-                $playingTitle.text('Now Playing: ' + episodeTitle);
-                $playingImage.attr('src', episodeImage).show();
-                $audioControl.removeClass('fa-play').addClass('fa-pause');
-            });
-
-            $('.audio-control').click(function () {
-                if (audioPlayer.paused) {
-                    audioPlayer.play();
-                    $audioControl.removeClass('fa-play').addClass('fa-pause');
-                } else {
-                    audioPlayer.pause();
-                    $audioControl.removeClass('fa-pause').addClass('fa-play');
-                }
-            });
-
-            audioPlayer.ontimeupdate = function () {
-                var current = Math.floor(audioPlayer.currentTime);
-                var duration = Math.floor(audioPlayer.duration);
-                $currentTime.text(formatTime(current));
-                $duration.text(formatTime(duration));
-            };
-
-            function formatTime(seconds) {
-                var minutes = Math.floor(seconds / 60);
-                seconds = seconds % 60;
-                return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
-            }
-
-            window.playAllEpisodes = function () {
-                var episodes = @Html.Raw(Json.Serialize(Model.Episodes.OrderByDescending(e => e.ReleaseDate).Select(e => new { e.AudioUrl, e.Title })));
-                if (episodes.length === 0) {
-                    alert('No episodes available to play.');
-                    return;
-                }
-
-                var currentIndex = 0;
+    @section Scripts {
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
+        <script>
+            $(document).ready(function () {
                 var audioPlayer = $('#audio-player')[0];
                 var $playingTitle = $('#playing-title');
                 var $playingImage = $('#playing-image');
+                var $currentTime = $('#current-time');
+                var $duration = $('#duration');
                 var $audioControl = $('.audio-control i');
 
-                function playEpisode(index) {
-                    if (index >= episodes.length) {
-                        $playingTitle.text('Now Playing: Episode Title');
-                        $playingImage.hide();
+                $('.play-episode').click(function () {
+                    var audioUrl = $(this).data('audio');
+                    var episodeTitle = $(this).closest('.episode-item').find('h5').text();
+                    var episodeImage = $(this).closest('.episode-item').find('img').attr('src');
+
+                    audioPlayer.src = audioUrl;
+                    audioPlayer.play();
+                    $playingTitle.text('Now Playing: ' + episodeTitle);
+                    $playingImage.attr('src', episodeImage).show();
+                    $audioControl.removeClass('fa-play').addClass('fa-pause');
+                });
+
+                $('.audio-control').click(function () {
+                    if (audioPlayer.paused) {
+                        audioPlayer.play();
+                        $audioControl.removeClass('fa-play').addClass('fa-pause');
+                    } else {
+                        audioPlayer.pause();
                         $audioControl.removeClass('fa-pause').addClass('fa-play');
+                    }
+                });
+
+                audioPlayer.ontimeupdate = function () {
+                    var current = Math.floor(audioPlayer.currentTime);
+                    var duration = Math.floor(audioPlayer.duration);
+                    $currentTime.text(formatTime(current));
+                    $duration.text(formatTime(duration));
+                };
+
+                function formatTime(seconds) {
+                    var minutes = Math.floor(seconds / 60);
+                    seconds = seconds % 60;
+                    return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+                }
+
+                window.playAllEpisodes = function () {
+                    var episodes = @Html.Raw(Json.Serialize(Model.Episodes.OrderByDescending(e => e.ReleaseDate).Select(e => new { e.AudioUrl, e.Title })));
+                    if (episodes.length === 0) {
+                        alert('No episodes available to play.');
                         return;
                     }
 
-                    var episode = episodes[index];
-                    audioPlayer.src = episode.audioUrl;
-                    audioPlayer.play();
-                    $playingTitle.text('Now Playing: ' + episode.title);
-                    $playingImage.attr('src', '@Model.ImageUrl').show();
-                    $audioControl.removeClass('fa-play').addClass('fa-pause');
+                    var currentIndex = 0;
+                    var audioPlayer = $('#audio-player')[0];
+                    var $playingTitle = $('#playing-title');
+                    var $playingImage = $('#playing-image');
+                    var $audioControl = $('.audio-control i');
 
-                    audioPlayer.onended = function () {
-                        playEpisode(index + 1);
-                    };
-                }
+                    function playEpisode(index) {
+                        if (index >= episodes.length) {
+                            $playingTitle.text('Now Playing: Episode Title');
+                            $playingImage.hide();
+                            $audioControl.removeClass('fa-pause').addClass('fa-play');
+                            return;
+                        }
 
-                playEpisode(currentIndex);
-            };
-        });
-    </script>
-}
+                        var episode = episodes[index];
+                        audioPlayer.src = episode.audioUrl;
+                        audioPlayer.play();
+                        $playingTitle.text('Now Playing: ' + episode.title);
+                        $playingImage.attr('src', '@Model.ImageUrl').show();
+                        $audioControl.removeClass('fa-play').addClass('fa-pause');
+
+                        audioPlayer.onended = function () {
+                            playEpisode(index + 1);
+                        };
+                    }
+
+                    playEpisode(currentIndex);
+                };
+            });
+        </script>
+        <audio id="audio-player" style="display:none;"></audio>
+        <div id="audio-controls" style="display:none;">
+            <img id="playing-image" style="max-width: 50px; height: auto;" />
+            <span id="playing-title"></span>
+            <button class="btn btn-sm audio-control"><i class="fas fa-play"></i></button>
+            <span id="current-time">0:00</span>/<span id="duration">0:00</span>
+        </div>
+    }

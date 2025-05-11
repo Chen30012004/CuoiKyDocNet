@@ -1,15 +1,15 @@
-﻿@model CuoiKyDocNet.Models.Podcast
+﻿@model CuoiKyDocNet.Models.Episode
 @{
-    ViewData["Title"] = "Edit Podcast";
+    ViewData["Title"] = "Add Episode";
 }
 
 <div class="container mt-5">
-    <h2 class="text-center mb-4 text-white">Edit Podcast</h2>
+    <h2 class="text-center mb-4 text-white">Add Episode</h2>
     <div class="row justify-content-center">
         <div class="col-md-6">
             <div class="bg-dark p-4 rounded-0 border-0 text-white">
-                <form asp-action="EditPodcast" method="post">
-                    <input type="hidden" asp-for="Id" />
+                <form asp-action="AddEpisode" method="post">
+                    <input type="hidden" asp-for="PodcastId" />
                     <div asp-validation-summary="All" class="text-danger"></div>
                     <div class="form-group mb-3">
                         <label asp-for="Title" class="text-white"></label>
@@ -22,20 +22,19 @@
                         <span asp-validation-for="Description" class="text-danger"></span>
                     </div>
                     <div class="form-group mb-3">
-                        <label asp-for="ImageUrl" class="text-white"></label>
-                        <input asp-for="ImageUrl" class="form-control" />
-                        <span asp-validation-for="ImageUrl" class="text-danger"></span>
+                        <label asp-for="AudioUrl" class="text-white"></label>
+                        <input asp-for="AudioUrl" class="form-control" />
+                        <span asp-validation-for="AudioUrl" class="text-danger"></span>
                     </div>
                     <div class="form-group mb-3">
-                        <label asp-for="Category" class="text-white"></label>
-                        <input asp-for="Category" class="form-control" />
-                        <span asp-validation-for="Category" class="text-danger"></span>
+                        <label asp-for="Duration" class="text-white"></label>
+                        <input asp-for="Duration" type="number" class="form-control" />
+                        <span asp-validation-for="Duration" class="text-danger"></span>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100">Save Changes</button>
+                    <button type="submit" class="btn btn-primary w-100">Add Episode</button>
                 </form>
                 <div class="mt-3 text-center">
-                    <a asp-action="AddEpisode" asp-route-podcastId="@Model.Id" class="btn btn-success mb-2">Add Episode</a>
-                    <a asp-action="ManagePodcasts" class="btn btn-secondary">Back to Manage Podcasts</a>
+                    <a asp-action="DetailsPodcast" asp-controller="Admin" asp-route-id="@Model.PodcastId" class="btn btn-secondary">Back to Details</a>
                 </div>
             </div>
         </div>

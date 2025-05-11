@@ -1,0 +1,25 @@
+﻿@model dynamic
+@{
+    ViewData["Title"] = "Sign Up";
+}
+
+<h2>Sign Up</h2>
+
+<form asp-action="SignUp" method="post" class="profile-info" style="margin-bottom: 20px; margin-top: 20px;">
+    <div class="text-danger" asp-validation-summary="All"></div>
+    <div class="form-group">
+        <label for="fullName">Full Name</label>
+        <input type="text" name="fullName" class="form-control" required />
+    </div>
+    <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" name="email" class="form-control" required />
+    </div>
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" name="password" class="form-control" required />
+    </div>
+    <button type="submit" class="btn btn-success">Sign Up</button>
+</form>
+
+<p>Already have an account? <a asp-action="Login">Login</a></p>

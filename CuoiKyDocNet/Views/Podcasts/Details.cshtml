@@ -1,0 +1,186 @@
+﻿@model CuoiKyDocNet.Models.Podcast
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="podcast-header mb-5">
+    <div class="row align-items-center">
+        <div class="col-md-3 col-sm-12 col-lg-3">
+            @if (User.IsInRole("Admin") && !string.IsNullOrEmpty(Model.ImageUrl))
+            {
+                <img src="@Model.ImageUrl" alt="@Model.Title" class="img-fluid rounded shadow" style="max-width: 200px; height: auto;" />
+            }
+            else if (!string.IsNullOrEmpty(Model.ImageUrl))
+            {
+                <img src="@Model.ImageUrl" alt="@Model.Title" class="img-fluid rounded shadow" style="max-width: 200px; height: auto;" />
+            }
+        </div>
+        <div class="col-md-9 col-sm-12 col-lg-9">
+            @if (User.IsInRole("Admin"))
+            {
+                <!-- Form chỉnh sửa podcast (chỉ dành cho Admin) -->
+                <form asp-action="EditPodcast" method="post" class="mb-3">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <div class="mb-2">
+                        <label class="form-label text-white">Title</label>
+                        <input type="text" name="title" value="@Model.Title" class="form-control" required />
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label text-white">Description</label>
+                        <textarea name="description" class="form-control" required>@Model.Description</textarea>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label text-white">Image URL</label>
+                        <input type="text" name="imageUrl" value="@Model.ImageUrl" class="form-control" />
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label text-white">Category</label>
+                        <input type="text" name="category" value="@Model.Category" class="form-control" />
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-2">
+                        <i class="fas fa-save me-2"></i>Save Changes
+                    </button>
+                </form>
+            }
+            else
+            {
+                <h1 class="text-white">@Model.Title</h1>
+                <p class="text-muted">@Model.Category</p>
+                <p class="text-white">@Model.Description</p>
+                <button class="btn btn-success mt-2" onclick="playAllEpisodes()">Play All</button>
+            }
+        </div>
+    </div>
+</div>
+
+<h3 class="mb-4 text-white">Episodes</h3>
+@if (User.IsInRole("Admin"))
+{
+    <a asp-controller="Episodes" asp-action="Create" asp-route-podcastId="@Model.Id" class="btn btn-success mb-3">Add Episode</a>
+}
+<div class="episode-list">
+    @foreach (var episode in Model.Episodes.OrderByDescending(e => e.ReleaseDate))
+    {
+        <div class="episode-item d-flex align-items-center mb-3 p-3 bg-dark rounded shadow">
+            <img src="@Model.ImageUrl" alt="@episode.Title" class="episode-image me-3 rounded" style="width: 50px; height: 50px; object-fit: cover;" />
+            <div class="flex-grow-1">
+                <h5 class="text-white">@episode.Title</h5>
+                <p class="text-muted">@(string.IsNullOrEmpty(episode.Description) ? "No description" : episode.Description.Substring(0, Math.Min(episode.Description.Length, 150)) + "...")</p>
+                <small class="text-muted">@episode.ReleaseDate.ToString("MMM dd, yyyy") • @episode.Duration mins</small>
+            </div>
+            <div>
+                <button class="btn btn-success btn-sm play-episode" data-audio="@episode.AudioUrl" data-title="@episode.Title">
+                    <i class="fas fa-play"></i> Play
+                </button>
+            </div>
+        </div>
+    }
+    @if (!Model.Episodes.Any())
+    {
+        <p class="text-white">No episodes available.</p>
+    }
+</div>
+
+@if (User.IsInRole("Admin"))
+{
+    <h4 class="mt-5">Add New Episode (Inline)</h4>
+    <form asp-action="AddEpisode" method="post" class="mb-3">
+        <input type="hidden" name="podcastId" value="@Model.Id" />
+        <div class="mb-2">
+            <label class="form-label text-white">Episode Title</label>
+            <input type="text" name="title" class="form-control" required />
+        </div>
+        <div class="mb-2">
+            <label class="form-label text-white">Description</label>
+            <textarea name="description" class="form-control"></textarea>
+        </div>
+        <div class="mb-2">
+            <label class="form-label text-white">Audio URL</label>
+            <input type="text" name="audioUrl" class="form-control" required />
+        </div>
+        <div class="mb-2">
+            <label class="form-label text-white">Release Date</label>
+            <input type="date" name="releaseDate" class="form-control" required />
+        </div>
+        <div class="mb-2">
+            <label class="form-label text-white">Duration (minutes)</label>
+            <input type="number" name="duration" class="form-control" min="1" required />
+        </div>
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Add Episode
+        </button>
+    </form>
+}
+
+<!-- Nút quay lại -->
+<a asp-action="Index" class="btn btn-secondary mt-3">
+    <i class="fas fa-arrow-left me-2"></i>Back to Podcasts
+</a>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success mt-3" role="alert">
+        @TempData["SuccessMessage"]
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger mt-3" role="alert">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            var audioPlayer = $('#audio-player')[0];
+            var $playingTitle = $('#playing-title');
+            var $playingImage = $('#playing-image');
+            var $currentTime = $('#current-time');
+            var $duration = $('#duration');
+            var $audioControl = $('.audio-control i');
+
+            $('.play-episode').click(function () {
+                var audioUrl = $(this).data('audio');
+                var episodeTitle = $(this).closest('.episode-item').find('h5').text();
+                var episodeImage = $(this).closest('.episode-item').find('img').attr('src');
+
+                audioPlayer.src = audioUrl;
+                audioPlayer.play();
+                $playingTitle.text('Now Playing: ' + episodeTitle);
+                $playingImage.attr('src', episodeImage).show();
+                $audioControl.removeClass('fa-play').addClass('fa-pause');
+            });
+
+            $('.audio-control').click(function () {
+                if (audioPlayer.paused) {
+                    audioPlayer.play();
+                    $audioControl.removeClass('fa-play').addClass('fa-pause');
+                } else {
+                    audioPlayer.pause();
+                    $audioControl.removeClass('fa-pause').addClass('fa-play');
+                }
+            });
+
+            audioPlayer.ontimeupdate = function () {
+                var current = Math.floor(audioPlayer.currentTime);
+                var duration = Math.floor(audioPlayer.duration);
+                $currentTime.text(formatTime(current));
+                $duration.text(formatTime(duration));
+            };
+
+            function formatTime(seconds) {
+                var minutes = Math.floor(seconds / 60);
+                seconds = seconds % 60;
+                return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+            }
+
+            // Chức năng Play All (chưa hoàn thiện, cần danh sách URL episode)
+            window.playAllEpisodes = function () {
+                alert('Play All functionality is not fully implemented yet. Please play individual episodes.');
+                // TODO: Thêm logic để phát tất cả episode theo thứ tự ReleaseDate
+            };
+        });
+    </script>
+}

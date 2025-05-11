@@ -1,0 +1,90 @@
+﻿@model CuoiKyDocNet.Models.ProfileViewModel
+
+<link rel="stylesheet" href="style.css">
+
+
+@{
+    ViewData["Title"] = "Your Profile";
+}
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4 text-white">Your Profile</h2>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success text-center">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <p>@error.ErrorMessage</p>
+            }
+        </div>
+    }
+
+    <div class="bg-dark p-4 rounded-0 border-0 text-white">
+        @if (Model.IsEditMode)
+        {
+            <!-- Chế độ chỉnh sửa -->
+            <form asp-action="Profile" method="post" class="needs-validation" novalidate>
+                <input type="hidden" asp-for="IsEditMode" value="true" />
+                <div class="profile-info" style="margin-bottom: 20px">
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label">
+                            <i class="fas fa-lock me-2" style="color: #fffff;"></i>Email
+                        </label>
+                        <div class="input-group">
+                            <input asp-for="Email" class="form-control" readonly />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="FullName" class="form-label">Full Name</label>
+                        <input asp-for="FullName" class="form-control text-white border-light" />
+                        <span asp-validation-for="FullName" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <a asp-action="Profile" asp-route-edit="false" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        }
+        else
+        {
+            <!-- Chế độ chỉ đọc -->
+            <div class="mb-3">
+                <label class="form-label text-white">Email</label>
+                <p class="mb-0 text-white profile-info">@Model.Email</p>
+            </div>
+            <div class="mb-3">
+                <label class="form-label text-white">Full Name</label>
+                <p class="mb-0 text-white profile-info">@Model.FullName</p>
+            </div>
+            <div class="mb-3">
+                <label class="form-label text-white">Receive Email Notifications</label>
+                <p class="mb-0 text-white profile-info">@(Model.ReceiveEmailNotifications ? "Yes" : "No")</p>
+            </div>
+            <div class="d-flex justify-content-between">
+                <a asp-action="Profile" asp-route-edit="true" class="btn btn-dark">Edit Profile</a>
+                <a asp-action="ChangePassword" class="btn btn-dark">Change Password</a>
+            </div>
+        }
+
+        <!-- Nút đăng xuất -->
+        <div class="mt-4" style="margin-bottom: 40px;">
+            <form asp-action="Logout" method="post">
+                <button type="submit" class="btn btn-danger w-100">Logout</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

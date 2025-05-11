@@ -1,0 +1,233 @@
+﻿/* General Styles */
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #121212;
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+}
+
+h1, h3, h5 {
+    color: #ffffff;
+}
+
+.text-muted {
+    color: #b3b3b3 !important;
+}
+
+/* Sidebar Styles */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 200px;
+    height: 100vh;
+    background-color: #000000;
+    padding: 1rem;
+    transition: width 0.3s ease;
+    z-index: 1000;
+}
+
+    .sidebar.collapsed {
+        width: 60px;
+    }
+
+        .sidebar.collapsed .sidebar-text {
+            display: none;
+        }
+
+        .sidebar.collapsed .sidebar-logo {
+            margin-right: 0 !important;
+        }
+
+/* Nút thu gọn */
+.btn-toggle-sidebar {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 1.2rem;
+    color: #ffffff;
+    width: 100%;
+    text-align: left;
+    margin-bottom: 1rem;
+    margin-left: 0.2rem;
+}
+
+    .btn-toggle-sidebar:hover {
+        color: #1db954;
+    }
+
+/* Các mục trong sidebar */
+.nav-link {
+    display: flex;
+    align-items: center;
+    padding: 0.25rem 0;
+}
+
+    .nav-link i {
+        margin-right: 0.5rem; /* Điều chỉnh khoảng cách giữa icon và text */
+    }
+
+/* Main Content */
+.main-content {
+    margin-left: 200px;
+    padding: 2rem 1rem;
+    transition: margin-left 0.3s ease;
+    flex-grow: 1;
+}
+
+    .main-content.collapsed {
+        margin-left: 60px;
+    }
+
+/* Audio Player (Footer) */
+.audio-player {
+    position: fixed;
+    bottom: 0;
+    width: calc(100% - 200px);
+    margin-left: 200px;
+    background-color: #000000;
+    padding: 0.5rem 1rem;
+    z-index: 900;
+    transition: margin-left 0.3s ease, width 0.3s ease;
+}
+
+    .audio-player.collapsed {
+        width: calc(100% - 60px);
+        margin-left: 60px;
+    }
+
+    .audio-player .d-flex {
+        align-items: center;
+    }
+
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(135deg, #2a0845 0%, #6441a5 50%, #f7b733 100%);
+    background-size: cover;
+    background-attachment: fixed;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 2rem 0;
+}
+
+    .hero-section h1 {
+        color: #ffffff;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .hero-section p {
+        color: #e0e0e0;
+    }
+
+    .hero-section .btn-success {
+        background-color: #1db954;
+        border-color: #1db954;
+    }
+
+        .hero-section .btn-success:hover {
+            background-color: #1ed760;
+            border-color: #1ed760;
+        }
+
+/* Podcast and Episode Cards */
+.podcast-header img {
+    max-width: 200px;
+    height: auto;
+}
+
+.podcast-card:hover, .episode-item:hover {
+    background-color: #282828;
+    transition: background-color 0.3s;
+}
+
+.podcast-card img, .episode-image {
+    border-radius: 8px;
+}
+
+.episode-item {
+    background-color: #282828;
+    transition: background-color 0.2s;
+}
+
+    .episode-item:hover {
+        background-color: #383838;
+    }
+
+    .episode-item h5 {
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+/* Buttons */
+.btn-success {
+    background-color: #1db954;
+    border-color: #1db954;
+}
+
+.btn-success:hover {
+    background-color: #1ed760;
+    border-color: #1ed760;
+}
+
+.btn-dark {
+    background-color: #363E42;
+}
+
+
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 60px;
+    }
+
+        .sidebar .sidebar-text {
+            display: none;
+        }
+
+    .main-content {
+        margin-left: 60px;
+    }
+
+    .audio-player {
+        margin-left: 60px;
+        width: calc(100% - 60px);
+    }
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-control {
+    background-color: #262A2D;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    padding: 0.5rem;
+    margin-top: 5px;
+}
+
+    .form-control:focus {
+        background-color: #363B40;
+        color: #ffffff;
+        box-shadow: none;
+    }
+
+    .form-control[readonly] {
+        background-color: #484E55;
+        color: #E5E5E5;
+        border-color: #333333;
+    }
+
+.profile-info {
+    background-color: #1F2123; /* nền đen hơn */
+    color: #ffffff;
+    border-radius: 12px; /* bo góc */
+    padding: 10px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2); /* bóng đổ nhẹ */
+    margin-top: 10px;
+}
+

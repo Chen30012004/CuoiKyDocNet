@@ -1,0 +1,96 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+@model IEnumerable<CuoiKyDocNet.Models.Podcast>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<!-- Hero Section -->
+<section class="hero-section text-white d-flex align-items-center" style="min-height: 100vh;">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <div class="hero-logo mb-4">
+                    <i class="fab fa-spotify" style="font-size: 4rem;"></i>
+                </div>
+                <h1 class="display-3 fw-bold mb-3">Discover Amazing Podcasts with Podcastify</h1>
+                <p class="lead mb-4">Explore a wide range of podcasts, from technology to health, and enjoy seamless listening.</p>
+                <a href="@Url.Action("Index", "Podcasts")" class="btn btn-success btn-lg">Browse Now</a>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Featured Podcasts Section -->
+<section class="featured-podcasts py-5">
+    <div class="container">
+        <h2 class="mb-4 text-white">Featured Podcasts</h2>
+        <div class="row">
+            @if (Model != null && Model.Any())
+            {
+                @foreach (var podcast in Model)
+                {
+                    <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                        <div class="podcast-card">
+                            <a asp-controller="Podcasts" asp-action="Details" asp-route-id="@podcast.Id" class="text-decoration-none">
+                                <img src="@podcast.ImageUrl" alt="@podcast.Title" class="img-fluid rounded shadow" style="height: 200px; object-fit: cover;" />
+                                <div class="p-3">
+                                    <h5 class="text-white">@podcast.Title</h5>
+                                    <p class="text-muted">@podcast.Description.Substring(0, Math.Min(podcast.Description.Length, 100))...</p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="text-muted">No featured podcasts available.</p>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- Recently Played Section -->
+<section class="recently-played py-5">
+    <div class="container">
+        <h2 class="mb-4 text-white">Recently Played</h2>
+        <div class="row">
+            <!-- Placeholder: Dữ liệu giả để hiển thị giao diện -->
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <div class="podcast-card">
+                    <a href="#" class="text-decoration-none">
+                        <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=300&fit=crop" alt="Tech Talk" class="img-fluid rounded shadow" style="height: 200px; object-fit: cover;" />
+                        <div class="p-3">
+                            <h5 class="text-white">Tech Talk</h5>
+                            <p class="text-muted">Episode 1: The Future of AI</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <div class="podcast-card">
+                    <a href="#" class="text-decoration-none">
+                        <img src="https://images.unsplash.com/photo-1507413245164-6160d8298b31?w=300&h=300&fit=crop" alt="Science Weekly" class="img-fluid rounded shadow" style="height: 200px; object-fit: cover;" />
+                        <div class="p-3">
+                            <h5 class="text-white">Science Weekly</h5>
+                            <p class="text-muted">Episode 2: New Discoveries</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <div class="podcast-card">
+                    <a href="#" class="text-decoration-none">
+                        <img src="https://images.unsplash.com/photo-1505751172876-fa1923c5c7a2?w=300&h=300&fit=crop" alt="Mind Matters" class="img-fluid rounded shadow" style="height: 200px; object-fit: cover;" />
+                        <div class="p-3">
+                            <h5 class="text-white">Mind Matters</h5>
+                            <p class="text-muted">Episode 3: Mental Health</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

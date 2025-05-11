@@ -1,0 +1,19 @@
+﻿@model IEnumerable<CuoiKyDocNet.Models.Podcast>
+
+<h1 class="mb-4">Browse Podcasts</h1>
+<div class="row">
+    @foreach (var podcast in Model)
+    {
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+            <div class="podcast-card">
+                <a asp-action="Details" asp-route-id="@podcast.Id" class="text-decoration-none">
+                    <img src="@podcast.ImageUrl" alt="@podcast.Title" class="img-fluid" />
+                    <div class="p-3">
+                        <h5>@podcast.Title</h5>
+                        <p class="description">@podcast.Description.Substring(0, Math.Min(podcast.Description.Length, 100))...</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    }
+</div>

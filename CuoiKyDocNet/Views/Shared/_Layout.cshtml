@@ -1,0 +1,183 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Podcastify - @ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-dark text-white">
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <nav class="sidebar bg-black p-3">
+            <!-- Nút thu gọn -->
+            <button class="btn btn-toggle-sidebar text-white mb-3">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <a class="navbar-brand text-white mb-4 d-block" href="/">
+                <i class="fab fa-spotify sidebar-logo"></i>
+                <span class="sidebar-text">Podcastify</span>
+            </a>
+            <ul class="nav flex-column">
+                <li class="nav-item mb-2">
+                    <a class="nav-link text-white" asp-controller="Podcasts" asp-action="Index">
+                        <i class="fas fa-home"></i>
+                        <span class="sidebar-text">Browse</span>
+                    </a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a class="nav-link text-white" asp-controller="Podcasts" asp-action="Search">
+                        <i class="fas fa-search"></i>
+                        <span class="sidebar-text">Search</span>
+                    </a>
+                </li>
+                <li class="nav-item mb-2">
+                    <h6 class="text-muted sidebar-text">Categories</h6>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link text-white" asp-controller="Podcasts" asp-action="Index" asp-route-category="Technology">
+                                <span class="sidebar-text">Technology</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" asp-controller="Podcasts" asp-action="Index" asp-route-category="Science">
+                                <span class="sidebar-text">Science</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" asp-controller="Podcasts" asp-action="Index" asp-route-category="Health">
+                                <span class="sidebar-text">Health</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <!-- Liên kết Sign Up/Login/Logout và các mục khác -->
+                <div class="navbar-nav">
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <a class="nav-link text-white" asp-area="" asp-controller="Account" asp-action="Profile">
+                            <i class="fas fa-user-circle me-2"></i>
+                            <span class="sidebar-text">Profile</span>
+                        </a>
+                        <a class="nav-link text-white" asp-area="" asp-controller="FavoritePodcasts" asp-action="Index">
+                            <i class="fas fa-heart me-2"></i>
+                            <span class="sidebar-text">Favorite Podcasts</span>
+                        </a>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a class="nav-link text-white" asp-area="" asp-controller="Admin" asp-action="Index">
+                                <i class="fas fa-shield-alt me-2"></i>
+                                <span class="sidebar-text">Admin Panel</span>
+                            </a>
+                            <a class="nav-link text-white" asp-area="" asp-controller="Admin" asp-action="ManageUsers">
+                                <i class="fas fa-users me-2"></i>
+                                <span class="sidebar-text">Manage Users</span>
+                            </a>
+                            <a class="nav-link text-white" asp-area="" asp-controller="Admin" asp-action="ManagePodcasts">
+                                <i class="fas fa-podcast me-2"></i>
+                                <span class="sidebar-text">Manage Podcasts</span>
+                            </a>
+                            <a class="nav-link text-white" asp-area="" asp-controller="Admin" asp-action="AddPodcast">
+                                <i class="fas fa-plus me-2"></i>
+                                <span class="sidebar-text">Add Podcast</span>
+                            </a>
+                        }
+                        <form class="nav-link text-white" asp-area="" asp-controller="Account" asp-action="Logout" method="post">
+                            <button type="submit" class="btn btn-link text-white p-0">
+                                <i class="fas fa-sign-out-alt me-2"></i>
+                                <span class="sidebar-text">Logout</span>
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <a class="nav-link text-white" asp-area="" asp-controller="Account" asp-action="Login">
+                            <i class="fas fa-sign-in-alt me-2"></i>
+                            <span class="sidebar-text">Login</span>
+                        </a>
+                        <a class="nav-link text-white" asp-area="" asp-controller="Account" asp-action="SignUp">
+                            <i class="fas fa-user-plus me-2"></i>
+                            <span class="sidebar-text">Sign Up</span>
+                        </a>
+                        <a class="nav-link text-white" asp-area="" asp-controller="Account" asp-action="ForgotPassword">
+                            <i class="fas fa-key me-2"></i>
+                            <span class="sidebar-text">Forgot Password</span>
+                        </a>
+                    }
+                </div>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content p-4 flex-grow-1">
+            @RenderBody()
+        </div>
+    </div>
+
+    <!-- Audio Player (Sticky Footer) -->
+    <footer class="audio-player bg-black text-white p-3">
+        <div class="d-flex align-items-center">
+            <div class="me-3">
+                <img id="playing-image" src="" alt="Episode Image" style="width: 40px; height: 40px; object-fit: cover; display: none;" />
+                <small id="playing-title">Now Playing: Episode Title</small>
+            </div>
+            <div class="d-flex align-items-center flex-grow-1">
+                <button class="btn btn-success btn-sm me-2 audio-control">
+                    <i class="fas fa-play"></i>
+                </button>
+                <audio id="audio-player" class="w-50 me-2">
+                    <source src="" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+                <span id="current-time">0:00</span> / <span id="duration">0:00</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+        $(document).ready(function () {
+            $('.btn-toggle-sidebar').click(function () {
+                $('.sidebar').toggleClass('collapsed');
+                $('.main-content').toggleClass('collapsed');
+                $('.audio-player').toggleClass('collapsed');
+                $(this).find('i').toggleClass('fa-bars fa-chevron-right');
+            });
+
+            // Audio Player Control
+            var audioPlayer = $('#audio-player')[0];
+            var $audioControl = $('.audio-control i');
+
+            $('.audio-control').click(function () {
+                if (audioPlayer.paused) {
+                    audioPlayer.play();
+                    $audioControl.removeClass('fa-play').addClass('fa-pause');
+                } else {
+                    audioPlayer.pause();
+                    $audioControl.removeClass('fa-pause').addClass('fa-play');
+                }
+            });
+
+            audioPlayer.ontimeupdate = function () {
+                var current = Math.floor(audioPlayer.currentTime);
+                var duration = Math.floor(audioPlayer.duration);
+                $('#current-time').text(formatTime(current));
+                $('#duration').text(formatTime(duration));
+            };
+
+            function formatTime(seconds) {
+                var minutes = Math.floor(seconds / 60);
+                seconds = seconds % 60;
+                return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+            }
+        });
+    </script>
+</body>
+</html>

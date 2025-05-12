@@ -25,16 +25,34 @@ namespace CuoiKyDocNet.Data
                 if (user != null && !user.EmailConfirmed)
                 {
                     var path = context.Request.Path.Value.ToLower();
+                    _logger.LogDebug("Checking path {Path} for user {Email} (EmailConfirmed: {EmailConfirmed}).", path, user.Email, user.EmailConfirmed);
+
+                    // Bỏ qua các trang liên quan đến xác nhận email, đăng xuất, đăng ký, thay đổi mật khẩu và chỉnh sửa profile
                     if (!path.StartsWith("/account/verifyemail") &&
                         !path.StartsWith("/account/logout") &&
-                        !path.StartsWith("/account/signup"))
+                        !path.StartsWith("/account/signup") &&
+                        !path.StartsWith("/account/changepassword") &&
+                        !path.StartsWith("/account/editprofile"))
                     {
-                        _logger.LogInformation("Redirecting user {Email} to email verification.", user.Email);
+                        _logger.LogInformation("Redirecting user {Email} to email verification from path {Path}.", user.Email, path);
                         context.Response.Redirect("/Account/VerifyEmail?email=" + user.Email);
                         return;
                     }
+                    else
+                    {
+                        _logger.LogDebug("Skipping email verification redirect for path {Path} for user {Email}.", path, user.Email);
+                    }
+                }
+                else if (user == null)
+                {
+                    _logger.LogWarning("User not found in EmailVerificationMiddleware for authenticated request.");
                 }
             }
+            else
+            {
+                _logger.LogDebug("User is not authenticated, skipping email verification middleware.");
+            }
+
             await _next(context);
         }
     }

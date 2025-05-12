@@ -12,30 +12,26 @@ namespace CuoiKyDocNet.Data
         }
 
         public DbSet<Podcast> Podcasts { get; set; }
-        public DbSet<UserFavoritePodcast> UserFavoritePodcasts { get; set; }
         public DbSet<Episode> Episodes { get; set; }
 
-        protected override void OnModelCreating(ModelBuilder builder)
+        public DbSet<UserFavoritePodcasts> UserFavoritePodcasts { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(builder);
+            base.OnModelCreating(modelBuilder);
 
-            builder.Entity<UserFavoritePodcast>()
-                .HasKey(ufp => new { ufp.UserId, ufp.PodcastId });
+            modelBuilder.Entity<UserFavoritePodcasts>()
+                .HasKey(uf => new { uf.UserId, uf.PodcastId });
 
-            builder.Entity<UserFavoritePodcast>()
-                .HasOne(ufp => ufp.User)
-                .WithMany(u => u.FavoritePodcasts)
-                .HasForeignKey(ufp => ufp.UserId);
+            modelBuilder.Entity<UserFavoritePodcasts>()
+                .HasOne(uf => uf.User)
+                .WithMany(u => u.UserFavorites)
+                .HasForeignKey(uf => uf.UserId);
 
-            builder.Entity<UserFavoritePodcast>()
-                .HasOne(ufp => ufp.Podcast)
+            modelBuilder.Entity<UserFavoritePodcasts>()
+                .HasOne(uf => uf.Podcast)
                 .WithMany(p => p.UserFavorites)
-                .HasForeignKey(ufp => ufp.PodcastId);
-
-            builder.Entity<Episode>()
-                .HasOne(e => e.Podcast)
-                .WithMany(p => p.Episodes)
-                .HasForeignKey(e => e.PodcastId);
+                .HasForeignKey(uf => uf.PodcastId);
         }
     }
 }

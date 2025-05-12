@@ -230,16 +230,26 @@ namespace CuoiKyDocNet.Controllers
         [HttpGet]
         public async Task<IActionResult> ChangePassword()
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
+            try
             {
-                _logger.LogWarning("ChangePassword access failed: User not found.");
-                TempData["ErrorMessage"] = "User not found. Please log in again.";
-                return RedirectToAction("Login");
-            }
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null)
+                {
+                    _logger.LogWarning("ChangePassword access failed: User not found.");
+                    TempData["ErrorMessage"] = "User not found. Please log in again.";
+                    return RedirectToAction("Login");
+                }
 
-            var model = new ChangePasswordViewModel();
-            return View(model);
+                _logger.LogInformation("User {Email} accessed ChangePassword page.", user.Email);
+                var model = new ChangePasswordViewModel();
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while accessing ChangePassword page.");
+                TempData["ErrorMessage"] = "An error occurred while loading the change password page.";
+                return RedirectToAction("Profile");
+            }
         }
 
         [Authorize]
@@ -247,8 +257,13 @@ namespace CuoiKyDocNet.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
         {
-            if (ModelState.IsValid)
+            try
             {
+                if (!ModelState.IsValid)
+                {
+                    return View(model);
+                }
+
                 var user = await _userManager.GetUserAsync(User);
                 if (user == null)
                 {
@@ -270,8 +285,25 @@ namespace CuoiKyDocNet.Controllers
                     _logger.LogError("ChangePassword error for {Email}: {Error}", user.Email, error.Description);
                     ModelState.AddModelError(string.Empty, error.Description);
                 }
+                return View(model);
             }
-            return View(model);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while changing password for user {Email}.", (await _userManager.GetUserAsync(User))?.Email ?? "Unknown");
+                TempData["ErrorMessage"] = "An error occurred while changing your password.";
+                return View(model);
+            }
+        }
+
+        // ... (các action khác giữ nguyên)
+
+        private IActionResult RedirectToLocal(string returnUrl)
+        {
+            if (Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
+            return RedirectToAction("Index", "Home");
         }
 
         [Authorize]
@@ -300,44 +332,90 @@ namespace CuoiKyDocNet.Controllers
         [HttpGet]
         public async Task<IActionResult> EditProfile()
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                _logger.LogWarning("EditProfile access failed: User not found.");
-                return RedirectToAction("Login");
-            }
-
-            var model = new EditProfileViewModel
-            {
-                Email = user.Email,
-                FullName = user.FullName,
-                ReceiveEmailNotifications = user.ReceiveEmailNotifications
-            };
-
-            _logger.LogInformation("User {Email} accessed EditProfile.", user.Email);
-            return View(model);
-        }
-
-        [Authorize]
-        [HttpPost]
-        public async Task<IActionResult> EditProfile(EditProfileViewModel model)
-        {
-            if (ModelState.IsValid)
+            try
             {
                 var user = await _userManager.GetUserAsync(User);
                 if (user == null)
                 {
-                    _logger.LogWarning("EditProfile update failed: User not found.");
+                    _logger.LogWarning("EditProfile access failed: User not found.");
+                    TempData["ErrorMessage"] = "User not found. Please log in again.";
                     return RedirectToAction("Login");
                 }
 
+                var model = new EditProfileViewModel
+                {
+                    Email = user.Email,
+                    FullName = user.FullName,
+                    ReceiveEmailNotifications = user.ReceiveEmailNotifications
+                };
+
+                _logger.LogInformation("User {Email} accessed EditProfile.", user.Email);
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while retrieving user profile for editing.");
+                TempData["ErrorMessage"] = "An error occurred while loading your profile.";
+                return RedirectToAction("Profile");
+            }
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditProfile(EditProfileViewModel model)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return View(model);
+                }
+
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null)
+                {
+                    _logger.LogWarning("EditProfile update failed: User not found.");
+                    TempData["ErrorMessage"] = "User not found. Please log in again.";
+                    return RedirectToAction("Login");
+                }
+
+                var existingUser = await _userManager.FindByEmailAsync(model.Email);
+                if (existingUser != null && existingUser.Id != user.Id)
+                {
+                    _logger.LogWarning("EditProfile failed: Email {Email} is already registered.", model.Email);
+                    ModelState.AddModelError(string.Empty, "This email is already registered by another user.");
+                    return View(model);
+                }
+
+                var emailChanged = user.Email != model.Email;
                 user.FullName = model.FullName;
+                user.Email = model.Email;
                 user.ReceiveEmailNotifications = model.ReceiveEmailNotifications;
 
                 var result = await _userManager.UpdateAsync(user);
                 if (result.Succeeded)
                 {
-                    _logger.LogInformation("User {Email} profile updated successfully.", user.Email);
+                    if (emailChanged)
+                    {
+                        user.EmailConfirmed = false;
+                        await _userManager.UpdateAsync(user);
+                        // Gửi email xác nhận nếu cần
+                        try
+                        {
+                            user.VerificationCode = new Random().Next(100000, 999999).ToString();
+                            var emailBody = $"Your new verification code is: <strong>{user.VerificationCode}</strong>";
+                            await _emailService.SendEmailAsync(user.Email, "Verify Your Email", emailBody);
+                            _logger.LogInformation("Verification email sent to {Email} after email change.", user.Email);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Failed to send verification email to {Email}.", user.Email);
+                            TempData["ErrorMessage"] = "Profile updated, but failed to send verification email.";
+                        }
+                    }
+
+                    _logger.LogInformation("User {Email} updated their profile successfully.", user.Email);
                     TempData["SuccessMessage"] = "Profile updated successfully.";
                     return RedirectToAction("Profile");
                 }
@@ -347,8 +425,14 @@ namespace CuoiKyDocNet.Controllers
                     _logger.LogError("EditProfile update error for {Email}: {Error}", user.Email, error.Description);
                     ModelState.AddModelError(string.Empty, error.Description);
                 }
+                return View(model);
             }
-            return View(model);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while updating user profile for {Email}.", model.Email);
+                TempData["ErrorMessage"] = "An error occurred while updating your profile.";
+                return View(model);
+            }
         }
 
         [HttpPost]
@@ -450,17 +534,6 @@ namespace CuoiKyDocNet.Controllers
                 }
             }
             return View(model);
-        }
-
-
-
-        private IActionResult RedirectToLocal(string returnUrl)
-        {
-            if (Url.IsLocalUrl(returnUrl))
-            {
-                return Redirect(returnUrl);
-            }
-            return RedirectToAction("Index", "Home");
         }
     }
 }

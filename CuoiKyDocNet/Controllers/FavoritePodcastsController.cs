@@ -39,7 +39,7 @@ namespace CuoiKyDocNet.Controllers
 
             if (existingFavorite == null)
             {
-                var favorite = new UserFavoritePodcast
+                var favorite = new UserFavoritePodcasts
                 {
                     UserId = userId,
                     PodcastId = podcastId

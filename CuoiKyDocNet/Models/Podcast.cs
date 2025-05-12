@@ -19,13 +19,8 @@ namespace CuoiKyDocNet.Models
         [Required]
         public string Category { get; set; }
 
-        public ICollection<UserFavoritePodcast> UserFavorites { get; set; }
+        public ICollection<UserFavoritePodcasts> UserFavorites { get; set; }
         public ICollection<Episode> Episodes { get; set; }
 
-        public Podcast()
-        {
-            UserFavorites = new List<UserFavoritePodcast>();
-            Episodes = new List<Episode>();
-        }
     }
 }

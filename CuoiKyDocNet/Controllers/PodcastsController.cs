@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using CuoiKyDocNet.Data;
 using CuoiKyDocNet.Models;
@@ -12,11 +13,13 @@ namespace CuoiKyDocNet.Controllers
     {
         private readonly PodcastContext _context;
         private readonly ILogger<PodcastsController> _logger;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public PodcastsController(PodcastContext context, ILogger<PodcastsController> logger)
+        public PodcastsController(PodcastContext context, ILogger<PodcastsController> logger, UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _logger = logger;
+            _userManager = userManager;
         }
 
         [AllowAnonymous]
@@ -73,7 +76,9 @@ namespace CuoiKyDocNet.Controllers
 
             var podcast = await _context.Podcasts
                 .Include(p => p.Episodes)
+                .Include(p => p.UserFavorites) // Bao gồm thông tin yêu thích
                 .FirstOrDefaultAsync(m => m.Id == id);
+
             if (podcast == null)
             {
                 _logger.LogWarning("Podcast ID {Id} not found.", id);
@@ -82,6 +87,52 @@ namespace CuoiKyDocNet.Controllers
 
             _logger.LogInformation("Displayed details for podcast {Title}.", podcast.Title);
             return View(podcast);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleFavorite(int podcastId, string returnUrl)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                _logger.LogWarning("ToggleFavorite failed: User not authenticated.");
+                return Unauthorized();
+            }
+
+            var podcast = await _context.Podcasts.FindAsync(podcastId);
+            if (podcast == null)
+            {
+                _logger.LogWarning("ToggleFavorite failed: Podcast ID {Id} not found.", podcastId);
+                return NotFound();
+            }
+
+            var existingFavorite = await _context.UserFavoritePodcasts
+                .FirstOrDefaultAsync(uf => uf.UserId == user.Id && uf.PodcastId == podcastId);
+
+            if (existingFavorite != null)
+            {
+                // Xóa khỏi danh sách yêu thích
+                _context.UserFavoritePodcasts.Remove(existingFavorite);
+                TempData["SuccessMessage"] = "Podcast removed from favorites.";
+                _logger.LogInformation("User {UserId} unfavorited podcast {PodcastId}.", user.Id, podcastId);
+            }
+            else
+            {
+                // Thêm vào danh sách yêu thích
+                var favorite = new UserFavoritePodcasts
+                {
+                    UserId = user.Id,
+                    PodcastId = podcastId
+                };
+                _context.UserFavoritePodcasts.Add(favorite);
+                TempData["SuccessMessage"] = "Podcast added to favorites.";
+                _logger.LogInformation("User {UserId} favorited podcast {PodcastId}.", user.Id, podcastId);
+            }
+
+            await _context.SaveChangesAsync();
+            return Redirect(returnUrl);
         }
     }
 }

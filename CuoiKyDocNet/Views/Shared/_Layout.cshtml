@@ -7,7 +7,8 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+    @RenderSection("Styles", required: false)
 </head>
 <body class="bg-dark text-white">
     <div class="d-flex">
@@ -39,7 +40,6 @@
                     <h6 class="text-muted sidebar-text">Categories</h6>
                     <ul class="nav flex-column">
                         <li class="nav-item ms-3">
-                            <!-- Thêm lớp ms-3 -->
                             <a class="nav-link text-white" asp-controller="Podcasts" asp-action="Index" asp-route-category="Technology">
                                 <span class="sidebar-text">Technology</span>
                             </a>
@@ -177,6 +177,5 @@
             }
         });
     </script>
-    @RenderSection("Styles", required: false)
 </body>
 </html>

@@ -9,7 +9,7 @@
         <div class="col-md-6">
             <div class="bg-dark p-4 rounded-0 border-0 text-white">
                 <form asp-action="AddUser" method="post">
-                    <input type="hidden" asp-for="Id" value="" />
+                    <!-- Xóa input ẩn cho Id -->
                     <div asp-validation-summary="All" class="text-danger"></div>
                     <div class="form-group mb-3">
                         <label asp-for="Email" class="text-white"></label>
@@ -25,6 +25,15 @@
                         <label asp-for="Password" class="text-white"></label>
                         <input asp-for="Password" type="password" class="form-control" />
                         <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label asp-for="Role" class="text-white"></label>
+                        <select asp-for="Role" class="form-control">
+                            <option value="">Select Role</option>
+                            <option value="User">User</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                        <span asp-validation-for="Role" class="text-danger"></span>
                     </div>
                     <div class="form-group mb-3">
                         <div class="form-check">

@@ -5,47 +5,133 @@
 }
 
 @section Styles {
-    <link rel="stylesheet" href="~/css/auth.css" />
+    <style>
+        body {
+            background: linear-gradient(to bottom, #121212, #000000);
+            font-family: 'Poppins', sans-serif;
+            color: white;
+            min-height: 100vh;
+        }
+
+        .signup-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-top: 60px;
+            padding-bottom: 60px;
+        }
+
+        .signup-card {
+            background-color: #181818;
+            border-radius: 10px;
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        }
+
+        .signup-card h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #1DB954;
+        }
+
+        .form-label {
+            color: #b3b3b3;
+        }
+
+        .form-control {
+            background-color: #282828;
+            color: white;
+            border: none;
+            padding: 12px;
+            margin-top: 5px;
+        }
+
+        .form-control:focus {
+            background-color: #3a3a3a;
+            color: white;
+            border-color: #1DB954;
+        }
+
+        .btn-signup {
+            background-color: #1DB954;
+            border: none;
+            width: 100%;
+            padding: 12px;
+            font-weight: bold;
+            color: black;
+        }
+
+        .btn-signup:hover {
+            background-color: #1ed760;
+        }
+
+        .btn-secondary {
+            background-color: #535353;
+            border: none;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #6a6a6a;
+        }
+
+        .text-danger {
+            font-size: 0.9em;
+        }
+    </style>
 }
 
-<div class="background">
-    <div class="shape"></div>
-    <div class="shape"></div>
+<div class="signup-container">
+    <div class="signup-card">
+        <h2>Sign Up</h2>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success text-center">
+                @TempData["SuccessMessage"]
+            </div>
+        }
+
+        <form asp-action="SignUp" method="post">
+            <div class="text-danger" asp-validation-summary="All"></div>
+
+            <div class="form-group mb-3">
+                <label asp-for="FullName" class="form-label">Full Name</label>
+                <input asp-for="FullName" class="form-control" required />
+                <span asp-validation-for="FullName" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Email" class="form-label">Email</label>
+                <input asp-for="Email" class="form-control" required />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Password" class="form-label">Password</label>
+                <input asp-for="Password" class="form-control" required />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="ConfirmPassword" class="form-label">Confirm Password</label>
+                <input asp-for="ConfirmPassword" class="form-control" required />
+                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label class="form-check-label">
+                    <input asp-for="ReceiveEmailNotifications" class="form-check-input" /> Receive Email Notifications
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-signup mb-2">Sign Up</button>
+            <a asp-action="Login" class="btn btn-secondary w-100">Back to Login</a>
+        </form>
+    </div>
 </div>
-
-<form asp-action="SignUp" method="post">
-    <h3>Sign Up</h3>
-
-    <div class="text-danger" asp-validation-summary="All"></div>
-
-    <label asp-for="FullName"></label>
-    <input asp-for="FullName" placeholder="Full Name" required />
-    <span asp-validation-for="FullName" class="text-danger"></span>
-
-    <label asp-for="Email"></label>
-    <input asp-for="Email" placeholder="Email" required />
-    <span asp-validation-for="Email" class="text-danger"></span>
-
-    <label asp-for="Password"></label>
-    <input asp-for="Password" placeholder="Password" required />
-    <span asp-validation-for="Password" class="text-danger"></span>
-
-    <label asp-for="ConfirmPassword"></label>
-    <input asp-for="ConfirmPassword" placeholder="Confirm Password" required />
-    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-
-    <div class="form-check mt-3 mb-3">
-        <label class="form-check-label text-white">
-            <input asp-for="ReceiveEmailNotifications" class="form-check-input" /> Receive Email Notifications
-        </label>
-    </div>
-
-    <button type="submit">Sign Up</button>
-
-    <div class="links">
-        <a asp-action="Login">Back to Login</a>
-    </div>
-</form>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

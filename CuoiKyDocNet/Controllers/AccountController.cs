@@ -11,6 +11,7 @@ using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.Extensions.Logging;
+using System;
 
 namespace CuoiKyDocNet.Controllers
 {
@@ -227,6 +228,54 @@ namespace CuoiKyDocNet.Controllers
 
         [Authorize]
         [HttpGet]
+        public async Task<IActionResult> ChangePassword()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                _logger.LogWarning("ChangePassword access failed: User not found.");
+                TempData["ErrorMessage"] = "User not found. Please log in again.";
+                return RedirectToAction("Login");
+            }
+
+            var model = new ChangePasswordViewModel();
+            return View(model);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null)
+                {
+                    _logger.LogWarning("ChangePassword update failed: User not found.");
+                    TempData["ErrorMessage"] = "User not found. Please log in again.";
+                    return RedirectToAction("Login");
+                }
+
+                var result = await _userManager.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
+                if (result.Succeeded)
+                {
+                    _logger.LogInformation("Password changed successfully for user {Email}.", user.Email);
+                    TempData["SuccessMessage"] = "Password changed successfully.";
+                    return RedirectToAction("Profile");
+                }
+
+                foreach (var error in result.Errors)
+                {
+                    _logger.LogError("ChangePassword error for {Email}: {Error}", user.Email, error.Description);
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+            }
+            return View(model);
+        }
+
+        [Authorize]
+        [HttpGet]
         public async Task<IActionResult> Profile()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -402,6 +451,8 @@ namespace CuoiKyDocNet.Controllers
             }
             return View(model);
         }
+
+
 
         private IActionResult RedirectToLocal(string returnUrl)
         {

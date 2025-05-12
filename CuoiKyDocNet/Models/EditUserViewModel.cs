@@ -4,22 +4,25 @@ namespace CuoiKyDocNet.Models
 {
     public class EditUserViewModel
     {
-        public string Id { get; set; }
+        public string Id { get; set; } // Không đánh dấu [Required] để tránh lỗi khi thêm mới
 
-        [Required]
-        [EmailAddress]
+        [Required(ErrorMessage = "Email is required.")]
+        [EmailAddress(ErrorMessage = "Invalid email address.")]
         public string Email { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Full name is required.")]
         public string FullName { get; set; }
+
+        [Required(ErrorMessage = "Password is required.")]
+        [StringLength(100, MinimumLength = 6, ErrorMessage = "Password must be at least 6 characters long.")]
+        [DataType(DataType.Password)]
+        public string Password { get; set; }
 
         public bool EmailConfirmed { get; set; }
 
-        [Display(Name = "Receive Email Notifications")]
         public bool ReceiveEmailNotifications { get; set; }
 
-        [Required]
-        [DataType(DataType.Password)]
-        public string Password { get; set; }
+        [Required(ErrorMessage = "Role is required.")]
+        public string Role { get; set; }
     }
 }

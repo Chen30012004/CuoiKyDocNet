@@ -16,12 +16,18 @@ namespace CuoiKyDocNet.Controllers
         private readonly ILogger<AdminController> _logger;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly PodcastContext _context;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
-        public AdminController(ILogger<AdminController> logger, UserManager<ApplicationUser> userManager, PodcastContext context)
+        public AdminController(
+            ILogger<AdminController> logger,
+            UserManager<ApplicationUser> userManager,
+            PodcastContext context,
+            RoleManager<IdentityRole> roleManager)
         {
             _logger = logger;
             _userManager = userManager;
             _context = context;
+            _roleManager = roleManager;
         }
 
         public async Task<IActionResult> Index()
@@ -172,7 +178,7 @@ namespace CuoiKyDocNet.Controllers
                 }
 
                 model.ReleaseDate = DateTime.Now;
-                model.Podcast = podcast; // Gán Podcast để thiết lập mối quan hệ
+                model.Podcast = podcast;
                 _context.Episodes.Add(model);
                 await _context.SaveChangesAsync();
                 _logger.LogInformation("Episode {Title} added to Podcast ID {PodcastId} successfully.", model.Title, model.PodcastId);
@@ -181,6 +187,66 @@ namespace CuoiKyDocNet.Controllers
             return View(model);
         }
 
-        // Các action khác (AddUser, EditUser, DeleteUser, v.v.) giữ nguyên như trước
+        [HttpGet]
+        public IActionResult AddUser()
+        {
+            var model = new EditUserViewModel();
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddUser(EditUserViewModel model)
+        {
+            // Bỏ qua validation của Id
+            ModelState.Remove("Id");
+
+            if (ModelState.IsValid)
+            {
+                var existingUser = await _userManager.FindByEmailAsync(model.Email);
+                if (existingUser != null)
+                {
+                    _logger.LogWarning("AddUser failed: Email {Email} already registered.", model.Email);
+                    ModelState.AddModelError(string.Empty, "This email is already registered.");
+                    return View(model);
+                }
+
+                if (!await _roleManager.RoleExistsAsync("User"))
+                {
+                    await _roleManager.CreateAsync(new IdentityRole("User"));
+                    _logger.LogInformation("Role 'User' created successfully.");
+                }
+                if (!await _roleManager.RoleExistsAsync("Admin"))
+                {
+                    await _roleManager.CreateAsync(new IdentityRole("Admin"));
+                    _logger.LogInformation("Role 'Admin' created successfully.");
+                }
+
+                var user = new ApplicationUser
+                {
+                    UserName = model.Email,
+                    Email = model.Email,
+                    FullName = model.FullName,
+                    EmailConfirmed = model.EmailConfirmed,
+                    ReceiveEmailNotifications = model.ReceiveEmailNotifications
+                };
+
+                var result = await _userManager.CreateAsync(user, model.Password);
+                if (result.Succeeded)
+                {
+                    var role = model.Role == "Admin" ? "Admin" : "User";
+                    await _userManager.AddToRoleAsync(user, role);
+                    _logger.LogInformation("User {Email} added successfully with role {Role} by admin.", user.Email, role);
+                    return RedirectToAction("ManageUsers");
+                }
+
+                foreach (var error in result.Errors)
+                {
+                    _logger.LogError("AddUser error for {Email}: {Error}", model.Email, error.Description);
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+            }
+            return View(model);
+        }
     }
 }

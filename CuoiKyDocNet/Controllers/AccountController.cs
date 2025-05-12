@@ -119,7 +119,6 @@ namespace CuoiKyDocNet.Controllers
                     return View(model);
                 }
 
-                // Tạo vai trò "User" và "Admin" nếu chưa tồn tại
                 if (!await _roleManager.RoleExistsAsync("User"))
                 {
                     await _roleManager.CreateAsync(new IdentityRole("User"));
@@ -144,7 +143,6 @@ namespace CuoiKyDocNet.Controllers
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
-                    // Gán vai trò "User" cho người dùng thông thường
                     await _userManager.AddToRoleAsync(user, "User");
 
                     try
@@ -314,7 +312,97 @@ namespace CuoiKyDocNet.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        // Chỉ giữ một phương thức RedirectToLocal
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user == null || !(await _userManager.IsEmailConfirmedAsync(user)))
+                {
+                    _logger.LogInformation("ForgotPassword request for {Email}: Password reset link sent (if account exists).", model.Email);
+                    TempData["SuccessMessage"] = "If an account with that email exists and is verified, a password reset link has been sent.";
+                    return RedirectToAction("ForgotPassword");
+                }
+
+                var code = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Scheme);
+
+                try
+                {
+                    var emailBody = $"Please reset your password by clicking here: <a href='{callbackUrl}'>link</a>";
+                    await _emailService.SendEmailAsync(user.Email, "Reset Password", emailBody);
+                    _logger.LogInformation("Password reset email sent to {Email}.", user.Email);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to send password reset email to {Email}.", user.Email);
+                    ModelState.AddModelError(string.Empty, "Failed to send reset email. Please try again later.");
+                    return View(model);
+                }
+
+                TempData["SuccessMessage"] = "If an account with that email exists and is verified, a password reset link has been sent.";
+                return RedirectToAction("ForgotPassword");
+            }
+            _logger.LogWarning("Invalid model state for ForgotPassword attempt with email {Email}.", model.Email);
+            return View(model);
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ResetPassword(string userId, string code)
+        {
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(code))
+            {
+                _logger.LogWarning("ResetPassword failed: Invalid userId or code.");
+                return RedirectToAction("Login");
+            }
+
+            var model = new ResetPasswordViewModel { UserId = userId, Code = code };
+            return View(model);
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByIdAsync(model.UserId);
+                if (user == null)
+                {
+                    _logger.LogWarning("ResetPassword failed: User with ID {UserId} not found.", model.UserId);
+                    TempData["ErrorMessage"] = "Invalid reset request.";
+                    return RedirectToAction("Login");
+                }
+
+                var result = await _userManager.ResetPasswordAsync(user, model.Code, model.Password);
+                if (result.Succeeded)
+                {
+                    _logger.LogInformation("Password reset successfully for user {Email}.", user.Email);
+                    TempData["SuccessMessage"] = "Password has been reset successfully. You can now log in.";
+                    return RedirectToAction("Login");
+                }
+
+                foreach (var error in result.Errors)
+                {
+                    _logger.LogError("ResetPassword error for {UserId}: {Error}", model.UserId, error.Description);
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+            }
+            return View(model);
+        }
+
         private IActionResult RedirectToLocal(string returnUrl)
         {
             if (Url.IsLocalUrl(returnUrl))

@@ -18,14 +18,7 @@
             </div>
         </form>
     </div>
-    <div class="mb-3">
-        <form asp-action="Index" method="get">
-            <div class="input-group">
-                <input type="text" name="category" class="form-control" placeholder="Filter by category" value="@category" />
-                <button type="submit" class="btn btn-primary">Filter</button>
-            </div>
-        </form>
-    </div>
+    
     @if (Model.Any())
     {
         <div class="row">

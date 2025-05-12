@@ -38,23 +38,25 @@
                 <li class="nav-item mb-2">
                     <h6 class="text-muted sidebar-text">Categories</h6>
                     <ul class="nav flex-column">
-                        <li class="nav-item">
+                        <li class="nav-item ms-3">
+                            <!-- Thêm lớp ms-3 -->
                             <a class="nav-link text-white" asp-controller="Podcasts" asp-action="Index" asp-route-category="Technology">
                                 <span class="sidebar-text">Technology</span>
                             </a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item ms-3">
                             <a class="nav-link text-white" asp-controller="Podcasts" asp-action="Index" asp-route-category="Science">
                                 <span class="sidebar-text">Science</span>
                             </a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item ms-3">
                             <a class="nav-link text-white" asp-controller="Podcasts" asp-action="Index" asp-route-category="Health">
                                 <span class="sidebar-text">Health</span>
                             </a>
                         </li>
                     </ul>
                 </li>
+
                 <!-- Liên kết Sign Up/Login/Logout và các mục khác -->
                 <div class="navbar-nav">
                     @if (User.Identity.IsAuthenticated)
@@ -102,10 +104,6 @@
                         <a class="nav-link text-white" asp-area="" asp-controller="Account" asp-action="SignUp">
                             <i class="fas fa-user-plus me-2"></i>
                             <span class="sidebar-text">Sign Up</span>
-                        </a>
-                        <a class="nav-link text-white" asp-area="" asp-controller="Account" asp-action="ForgotPassword">
-                            <i class="fas fa-key me-2"></i>
-                            <span class="sidebar-text">Forgot Password</span>
                         </a>
                     }
                 </div>

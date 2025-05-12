@@ -248,5 +248,104 @@ namespace CuoiKyDocNet.Controllers
             }
             return View(model);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> EditUser(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                _logger.LogWarning("EditUser failed: Invalid user ID.");
+                return NotFound();
+            }
+
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                _logger.LogWarning("EditUser failed: User with ID {Id} not found.", id);
+                return NotFound();
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var role = roles.FirstOrDefault() ?? "User"; // Lấy vai trò đầu tiên (User hoặc Admin)
+
+            var model = new EditUserViewModel
+            {
+                Id = user.Id,
+                Email = user.Email,
+                FullName = user.FullName,
+                EmailConfirmed = user.EmailConfirmed,
+                ReceiveEmailNotifications = user.ReceiveEmailNotifications,
+                Role = role
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditUser(EditUserViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByIdAsync(model.Id);
+                if (user == null)
+                {
+                    _logger.LogWarning("EditUser failed: User with ID {Id} not found.", model.Id);
+                    return NotFound();
+                }
+
+                var existingUser = await _userManager.FindByEmailAsync(model.Email);
+                if (existingUser != null && existingUser.Id != model.Id)
+                {
+                    _logger.LogWarning("EditUser failed: Email {Email} is already registered.", model.Email);
+                    ModelState.AddModelError(string.Empty, "This email is already registered by another user.");
+                    return View(model);
+                }
+
+                user.Email = model.Email;
+                user.FullName = model.FullName;
+                user.EmailConfirmed = model.EmailConfirmed;
+                user.ReceiveEmailNotifications = model.ReceiveEmailNotifications;
+
+                // Chỉ cập nhật mật khẩu nếu người dùng nhập mật khẩu mới
+                if (!string.IsNullOrEmpty(model.Password))
+                {
+                    var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                    var result = await _userManager.ResetPasswordAsync(user, token, model.Password);
+                    if (!result.Succeeded)
+                    {
+                        foreach (var error in result.Errors)
+                        {
+                            _logger.LogError("EditUser password reset error for {Email}: {Error}", user.Email, error.Description);
+                            ModelState.AddModelError(string.Empty, error.Description);
+                        }
+                        return View(model);
+                    }
+                }
+
+                var currentRoles = await _userManager.GetRolesAsync(user);
+                var newRole = model.Role == "Admin" ? "Admin" : "User";
+                if (currentRoles.FirstOrDefault() != newRole)
+                {
+                    await _userManager.RemoveFromRolesAsync(user, currentRoles);
+                    await _userManager.AddToRoleAsync(user, newRole);
+                }
+
+                var updateResult = await _userManager.UpdateAsync(user);
+                if (updateResult.Succeeded)
+                {
+                    _logger.LogInformation("User {Email} updated successfully by admin.", user.Email);
+                    TempData["SuccessMessage"] = "User updated successfully.";
+                    return RedirectToAction("ManageUsers");
+                }
+
+                foreach (var error in updateResult.Errors)
+                {
+                    _logger.LogError("EditUser update error for {Email}: {Error}", user.Email, error.Description);
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+            }
+            return View(model);
+        }
     }
 }

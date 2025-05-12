@@ -231,3 +231,61 @@ h1, h3, h5 {
     margin-top: 10px;
 }
 
+body {
+    background: linear-gradient(to bottom, #121212, #000000);
+    font-family: 'Poppins', sans-serif;
+    color: white;
+    min-height: 100vh;
+}
+
+.profile-container {
+    padding-top: 60px;
+    padding-bottom: 60px;
+    display: flex;
+    justify-content: center;
+}
+
+.profile-card {
+    background-color: #181818;
+    border-radius: 10px;
+    padding: 40px;
+    max-width: 600px;
+    width: 100%;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+}
+
+    .profile-card h2 {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #1DB954;
+    }
+
+    .profile-card h4 {
+        border-bottom: 1px solid #2a2a2a;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+        font-weight: 500;
+    }
+
+    .profile-card p {
+        font-size: 1.1em;
+        margin-bottom: 10px;
+    }
+
+.btn-primary {
+    background-color: #1DB954;
+    border: none;
+    color: black;
+    font-weight: bold;
+}
+
+    .btn-primary:hover {
+        background-color: #1ed760;
+    }
+
+.btn-secondary {
+    background-color: #535353;
+    border: none;
+    color: white;
+    margin-left: 10px;
+}
